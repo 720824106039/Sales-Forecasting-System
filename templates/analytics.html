@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}Sales Analytics | Sales Forecasting System{% endblock %}
+
+{% block content %}
+<!-- Hidden element to store JSON data for Chart.js -->
+<div id="analyticsDataContainer" data-analytics='{{ analytics_json|safe }}' class="d-none"></div>
+
+<!-- Header -->
+<div class="row mb-4 align-items-center">
+    <div class="col-lg-8">
+        <h2 class="fw-bold mb-1 text-dark">
+            <i class="bi bi-pie-chart text-primary me-2"></i>Sales Analytics & Visualizations
+        </h2>
+        <p class="text-muted mb-0">
+            Gain descriptive insights into historical revenue trends, seasonal fluctuations, best-selling products, and product categories.
+        </p>
+    </div>
+    <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+        <a href="{{ url_for('forecast') }}" class="btn btn-primary-custom">
+            <i class="bi bi-magic"></i> Proceed to Forecast
+        </a>
+    </div>
+</div>
+
+<!-- Summary Metric Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-xl-3">
+        <div class="kpi-card kpi-blue">
+            <div class="kpi-label">Total Revenue</div>
+            <div class="kpi-value">${{ "{:,.2f}".format(kpi.total_sales) }}</div>
+            <small class="text-muted"><i class="bi bi-calendar3 me-1"></i>{{ kpi.date_range }}</small>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="kpi-card kpi-cyan">
+            <div class="kpi-label">Average Sale / Order</div>
+            <div class="kpi-value">${{ "{:,.2f}".format(kpi.avg_sales) }}</div>
+            <small class="text-muted"><i class="bi bi-cart-check me-1"></i>Avg revenue per row</small>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="kpi-card kpi-emerald">
+            <div class="kpi-label">Max / Min Transaction</div>
+            <div class="kpi-value fs-4 mt-2">
+                <span class="text-success">${{ "{:,.0f}".format(kpi.max_sales) }}</span> / 
+                <span class="text-secondary">${{ "{:,.0f}".format(kpi.min_sales) }}</span>
+            </div>
+            <small class="text-muted"><i class="bi bi-arrows-expand me-1"></i>Peak vs lowest sale</small>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="kpi-card kpi-purple">
+            <div class="kpi-label">Total Quantity Sold</div>
+            <div class="kpi-value">{{ "{:,}".format(kpi.total_quantity) }}</div>
+            <small class="text-muted"><i class="bi bi-box-seam me-1"></i>Total units across orders</small>
+        </div>
+    </div>
+</div>
+
+<!-- Top Performer Banner -->
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="p-3 bg-white rounded-3 border d-flex align-items-center gap-3 shadow-sm">
+            <div class="kpi-icon-container icon-emerald">
+                <i class="bi bi-award-fill"></i>
+            </div>
+            <div>
+                <span class="text-muted small text-uppercase fw-semibold">Best-Selling Product</span>
+                <h5 class="fw-bold text-dark mb-0">{{ kpi.best_product }}</h5>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="p-3 bg-white rounded-3 border d-flex align-items-center gap-3 shadow-sm">
+            <div class="kpi-icon-container icon-blue">
+                <i class="bi bi-tags-fill"></i>
+            </div>
+            <div>
+                <span class="text-muted small text-uppercase fw-semibold">Best-Performing Category</span>
+                <h5 class="fw-bold text-dark mb-0">{{ kpi.best_category }}</h5>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Grid -->
+<div class="row g-4 mb-4">
+    <!-- Chart 1: Sales Over Time (Line) -->
+    <div class="col-lg-12">
+        <div class="card card-custom">
+            <div class="card-header-custom">
+                <h5><i class="bi bi-graph-up text-primary"></i> Daily Sales Over Time (Line Chart)</h5>
+                <span class="badge bg-light text-muted border">Daily Aggregation</span>
+            </div>
+            <div class="card-body">
+                <div style="height: 320px; position: relative;">
+                    <canvas id="chartSalesOverTime"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart 2: Monthly Sales (Bar) -->
+    <div class="col-lg-6">
+        <div class="card card-custom h-100">
+            <div class="card-header-custom">
+                <h5><i class="bi bi-bar-chart text-primary"></i> Monthly Sales Performance (Bar Chart)</h5>
+                <span class="badge bg-light text-muted border">Monthly Revenue</span>
+            </div>
+            <div class="card-body">
+                <div style="height: 290px; position: relative;">
+                    <canvas id="chartMonthlySales"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart 4: Category-wise Sales (Doughnut) -->
+    <div class="col-lg-6">
+        <div class="card card-custom h-100">
+            <div class="card-header-custom">
+                <h5><i class="bi bi-pie-chart text-primary"></i> Category-wise Sales (Doughnut Chart)</h5>
+                <span class="badge bg-light text-muted border">Category Revenue Share</span>
+            </div>
+            <div class="card-body">
+                <div style="height: 290px; position: relative;">
+                    <canvas id="chartCategorySales"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart 3: Product-wise Sales (Horizontal Bar) -->
+    <div class="col-lg-12">
+        <div class="card card-custom">
+            <div class="card-header-custom">
+                <h5><i class="bi bi-bar-chart-steps text-primary"></i> Top Products by Sales Revenue (Horizontal Bar Chart)</h5>
+                <span class="badge bg-light text-muted border">Top 10 Products</span>
+            </div>
+            <div class="card-body">
+                <div style="height: 340px; position: relative;">
+                    <canvas id="chartProductSales"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

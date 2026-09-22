@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+
+{% block title %}Sales Data Management | Sales Forecasting System{% endblock %}
+
+{% block content %}
+<div class="row mb-4 align-items-center">
+    <div class="col-lg-7">
+        <h2 class="fw-bold mb-1 text-dark">
+            <i class="bi bi-table text-primary me-2"></i>Sales Data Management
+        </h2>
+        <p class="text-muted mb-0">
+            Upload custom CSV sales records, inspect historical transactions, or restore sample datasets for experimentation.
+        </p>
+    </div>
+    <div class="col-lg-5 text-lg-end mt-3 mt-lg-0">
+        <a href="{{ url_for('download_sample') }}" class="btn btn-outline-secondary me-2">
+            <i class="bi bi-download"></i> Download Sample CSV
+        </a>
+        <a href="{{ url_for('load_sample') }}" class="btn btn-outline-primary" onclick="return confirm('Restore realistic sample dataset with 450+ records? This will overwrite existing records.');">
+            <i class="bi bi-arrow-clockwise"></i> Reset Sample Data
+        </a>
+    </div>
+</div>
+
+<!-- Upload Card & Validation Guidelines -->
+<div class="row g-4 mb-4">
+    <!-- CSV Upload Box -->
+    <div class="col-lg-7">
+        <div class="card card-custom h-100">
+            <div class="card-header-custom">
+                <h5><i class="bi bi-cloud-arrow-up text-primary"></i> Upload Custom Sales CSV</h5>
+            </div>
+            <div class="card-body">
+                <form action="{{ url_for('upload_csv') }}" method="POST" enctype="multipart/form-data">
+                    <div class="dropzone-box mb-3" id="csvDropzone">
+                        <i class="bi bi-filetype-csv display-4 text-primary mb-2"></i>
+                        <h6 class="fw-bold mb-1" id="dropzoneText">Click or Drag & Drop your CSV file here</h6>
+                        <p class="small text-muted mb-0">Supports standard .csv format with Date and Sales values</p>
+                        <input type="file" name="csv_file" id="csvFileInput" class="d-none" accept=".csv" required>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="replace_existing" id="replaceCheck" value="yes" checked>
+                            <label class="form-check-label small text-muted" for="replaceCheck">
+                                Replace existing database records
+                            </label>
+                        </div>
+                        <button type="submit" class="btn btn-primary-custom">
+                            <i class="bi bi-upload"></i> Process & Save Data
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- CSV Format Requirements & Info -->
+    <div class="col-lg-5">
+        <div class="card card-custom h-100">
+            <div class="card-header-custom">
+                <h5><i class="bi bi-card-checklist text-info"></i> Dataset Format Requirements</h5>
+            </div>
+            <div class="card-body">
+                <p class="small text-muted mb-3">
+                    The preprocessing engine validates every row. The dataset must meet the following minimum requirements:
+                </p>
+
+                <ul class="list-group list-group-flush small mb-3">
+                    <li class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong class="text-danger me-1">* Date:</strong>
+                            <span class="text-muted">Transaction date (e.g. 2025-01-15)</span>
+                        </div>
+                        <span class="badge bg-danger-subtle text-danger">Required</span>
+                    </li>
+                    <li class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong class="text-danger me-1">* Sales:</strong>
+                            <span class="text-muted">Sales amount in numerical currency</span>
+                        </div>
+                        <span class="badge bg-danger-subtle text-danger">Required</span>
+                    </li>
+                    <li class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong class="text-secondary me-1">Product:</strong>
+                            <span class="text-muted">Product item name (used in analytics)</span>
+                        </div>
+                        <span class="badge bg-secondary-subtle text-secondary">Optional</span>
+                    </li>
+                    <li class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong class="text-secondary me-1">Category:</strong>
+                            <span class="text-muted">Product category / department</span>
+                        </div>
+                        <span class="badge bg-secondary-subtle text-secondary">Optional</span>
+                    </li>
+                    <li class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong class="text-secondary me-1">Quantity & Price:</strong>
+                            <span class="text-muted">Units sold & price per unit</span>
+                        </div>
+                        <span class="badge bg-secondary-subtle text-secondary">Optional</span>
+                    </li>
+                </ul>
+
+                <div class="alert alert-info py-2 px-3 mb-0 small">
+                    <i class="bi bi-info-circle-fill me-1"></i> Missing dates, invalid rows, and duplicates are automatically cleaned by <code>data_preprocessing.py</code>.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Sales Data Table -->
+<div class="card card-custom">
+    <div class="card-header-custom flex-wrap gap-2">
+        <div class="d-flex align-items-center gap-2">
+            <h5><i class="bi bi-database text-primary"></i> Historical Sales Records</h5>
+            <span class="badge bg-primary-subtle text-primary rounded-pill">
+                <span id="visibleRecordCounter">{{ sales_records|length }}</span> of {{ total_records }} records
+            </span>
+        </div>
+        <div class="col-md-4 col-12">
+            <div class="input-group input-group-sm">
+                <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+                <input type="text" id="tableSearchInput" class="form-control" placeholder="Search by date, product, category...">
+            </div>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive" style="max-height: 600px; overflow-y: auto;">
+            <table class="table table-custom mb-0 table-hover align-middle">
+                <thead class="sticky-top bg-light">
+                    <tr>
+                        <th style="width: 80px;">#ID</th>
+                        <th>Date</th>
+                        <th>Product</th>
+                        <th>Category</th>
+                        <th class="text-center">Quantity</th>
+                        <th class="text-end">Unit Price</th>
+                        <th class="text-end">Sales Amount</th>
+                    </tr>
+                </thead>
+                <tbody id="salesDataTableBody">
+                    {% if sales_records %}
+                        {% for row in sales_records %}
+                        <tr>
+                            <td><span class="text-muted small">#{{ row.id }}</span></td>
+                            <td><strong class="text-dark">{{ row.date }}</strong></td>
+                            <td>{{ row.product }}</td>
+                            <td><span class="badge bg-light text-dark border">{{ row.category }}</span></td>
+                            <td class="text-center">{{ row.quantity }}</td>
+                            <td class="text-end">${{ "{:,.2f}".format(row.unit_price) }}</td>
+                            <td class="text-end fw-bold text-primary">${{ "{:,.2f}".format(row.sales) }}</td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center py-5 text-muted">
+                                <i class="bi bi-inbox display-6 d-block mb-2 text-secondary"></i>
+                                No sales data currently in the database.<br>
+                                <a href="{{ url_for('load_sample') }}" class="btn btn-sm btn-primary mt-2">
+                                    Load Sample Sales Data
+                                </a>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+
+{% block title %}About | Sales Forecasting System{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-lg-10 mx-auto text-center">
+        <span class="badge bg-primary-subtle text-primary px-3 py-2 rounded-pill fw-semibold mb-2">
+            Academic Project Documentation
+        </span>
+        <h2 class="fw-bold display-6 text-dark mb-2">Sales Forecasting System</h2>
+        <p class="lead text-muted mb-1">
+            A comprehensive, web-based predictive analytics platform developed as a <strong>B.Tech IT Mini Project</strong>.
+        </p>
+        <p class="text-secondary fw-semibold">
+            <i class="bi bi-person-badge text-primary me-1"></i> Developer: <span class="text-primary fw-bold">Hariharasuthan</span> | Department of Information Technology
+        </p>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- Student Developer Profile Card -->
+    <div class="col-lg-8 mx-auto">
+        <div class="card card-custom mb-4 border-primary-subtle shadow-sm">
+            <div class="card-body p-4">
+                <div class="row align-items-center">
+                    <div class="col-md-2 text-center mb-3 mb-md-0">
+                        <div class="kpi-icon-container icon-blue mx-auto" style="width: 64px; height: 64px; font-size: 2rem;">
+                            <i class="bi bi-person-fill"></i>
+                        </div>
+                    </div>
+                    <div class="col-md-10">
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                            <div>
+                                <h4 class="fw-bold text-dark mb-1">Hariharasuthan</h4>
+                                <p class="text-muted mb-0">B.Tech Information Technology &bull; Mini Project</p>
+                            </div>
+                            <span class="badge bg-primary px-3 py-2">Lead Developer</span>
+                        </div>
+                        <hr class="my-2">
+                        <div class="row small text-muted g-2">
+                            <div class="col-sm-6">
+                                <strong>Project Title:</strong> Sales Forecasting System
+                            </div>
+                            <div class="col-sm-6">
+                                <strong>Core Domain:</strong> Machine Learning & Web Engineering
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card card-custom mb-4">
+            <div class="card-header-custom">
+                <h5><i class="bi bi-info-circle text-primary"></i> Project Overview</h5>
+                <span class="badge bg-light text-dark border">B.Tech IT Mini Project</span>
+            </div>
+            <div class="card-body">
+                <h5 class="fw-bold text-dark">1. What is Sales Forecasting?</h5>
+                <p class="text-muted">
+                    Sales forecasting is the practice of estimating future sales revenue and customer demand over a specified period (such as 7, 14, or 30 days) using historical transaction data, trend analysis, and seasonal patterns.
+                </p>
+
+                <h5 class="fw-bold text-dark mt-4">2. Why is Sales Forecasting Useful?</h5>
+                <p class="text-muted">
+                    Accurate sales forecasts enable businesses, retailers, and supply chain managers to:
+                </p>
+                <ul class="text-muted">
+                    <li><strong>Optimize Inventory Levels:</strong> Prevent both costly overstocking and disruptive stockouts.</li>
+                    <li><strong>Financial Budgeting:</strong> Estimate future cash flow and allocate marketing/procurement budgets efficiently.</li>
+                    <li><strong>Staffing & Logistics:</strong> Plan workforce scheduling around predicted peak shopping periods (e.g., weekends).</li>
+                    <li><strong>Risk Mitigation:</strong> Detect declining revenue trends early to take corrective action.</li>
+                </ul>
+
+                <h5 class="fw-bold text-dark mt-4">3. How is Machine Learning Used in this System?</h5>
+                <p class="text-muted">
+                    Rather than relying on basic moving averages, this system employs <strong>Scikit-Learn Linear Regression</strong> enhanced with <strong>Autoregressive Lag Features</strong>:
+                </p>
+                <div class="row g-3 my-2">
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded border h-100">
+                            <h6 class="fw-bold text-primary mb-1"><i class="bi bi-calendar-event me-1"></i> Time-Based Features</h6>
+                            <p class="small text-muted mb-0">
+                                Captures calendar effects including <code>day_of_week</code>, <code>month</code>, <code>day_of_year</code>, and a binary <code>is_weekend</code> indicator.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded border h-100">
+                            <h6 class="fw-bold text-primary mb-1"><i class="bi bi-arrow-repeat me-1"></i> Autoregressive Lag Features</h6>
+                            <p class="small text-muted mb-0">
+                                Utilizes <code>lag_1</code> (yesterday's sales), <code>lag_7</code> (same day last week), and a <code>rolling_mean_7</code> moving average.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <h5 class="fw-bold text-dark mt-4">4. How the System Works (End-to-End Workflow)</h5>
+                <ol class="text-muted">
+                    <li><strong>Data Ingestion & Storage:</strong> Sales records are loaded into a local SQLite database either via CSV upload or sample generation.</li>
+                    <li><strong>Validation & Preprocessing:</strong> Handled by <code>preprocessing/data_preprocessing.py</code> to clean missing values, validate dates, remove duplicates, and ensure required fields (<code>Date</code>, <code>Sales</code>) exist.</li>
+                    <li><strong>Daily Aggregation & Feature Engineering:</strong> Raw transactions are grouped daily and enriched with time and lag features.</li>
+                    <li><strong>Model Training & Evaluation:</strong> The dataset is partitioned chronologically (80% train, 20% test) to compute MAE, RMSE, and R² scores.</li>
+                    <li><strong>Multi-Step Recursive Prediction:</strong> The model dynamically updates lag values day by day to forecast 7, 14, or 30 days into the future.</li>
+                    <li><strong>Interactive Presentation:</strong> Rendered through Flask templates and visualized with Chart.js charts.</li>
+                </ol>
+            </div>
+        </div>
+
+        <!-- Technology Stack Table -->
+        <div class="card card-custom mb-4">
+            <div class="card-header-custom">
+                <h5><i class="bi bi-layers text-primary"></i> Technology Stack & Architecture</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-custom mb-0">
+                        <thead>
+                            <tr>
+                                <th>Component</th>
+                                <th>Technology</th>
+                                <th>Role in Project</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Backend Framework</strong></td>
+                                <td>Python Flask 3.x</td>
+                                <td>REST routing, template rendering, and API endpoints</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Machine Learning</strong></td>
+                                <td>Scikit-Learn</td>
+                                <td>Linear Regression model training, evaluation & forecasting</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Data Processing</strong></td>
+                                <td>Pandas & NumPy</td>
+                                <td>Data cleaning, date conversion, feature engineering</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Database</strong></td>
+                                <td>SQLite 3</td>
+                                <td>Persistent storage of sales records & forecast logs</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Frontend UI</strong></td>
+                                <td>HTML5, CSS3, Bootstrap 5</td>
+                                <td>Clean, responsive user interface with modern cards</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Visualizations</strong></td>
+                                <td>Chart.js 4.4</td>
+                                <td>Interactive line, bar, horizontal bar, and doughnut charts</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Viva Questions & Answers Section -->
+        <div class="card card-custom">
+            <div class="card-header-custom">
+                <h5><i class="bi bi-question-circle text-primary"></i> Key Viva Questions & Answers</h5>
+                <span class="badge bg-primary-subtle text-primary">Examiner Guide</span>
+            </div>
+            <div class="card-body">
+                <div class="accordion" id="vivaAccordion">
+                    <!-- Q1 -->
+                    <div class="accordion-item mb-2 border rounded">
+                        <h2 class="accordion-header" id="headingOne">
+                            <button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne">
+                                Q1: Why did you use Linear Regression with lag features instead of standard regression?
+                            </button>
+                        </h2>
+                        <div id="collapseOne" class="accordion-collapse collapse" data-bs-parent="#vivaAccordion">
+                            <div class="accordion-body text-muted small">
+                                Standard linear regression treats each observation independently and assumes data points are independent and identically distributed (i.i.d.). However, sales data is a time series with temporal dependencies and weekly cycles. By creating lag features (e.g. sales of the previous day and previous week) and calendar features, we allow a linear model to capture momentum and weekly seasonality effectively without requiring complex deep learning models.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Q2 -->
+                    <div class="accordion-item mb-2 border rounded">
+                        <h2 class="accordion-header" id="headingTwo">
+                            <button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo">
+                                Q2: Why is chronological train/test split necessary for time series data?
+                            </button>
+                        </h2>
+                        <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#vivaAccordion">
+                            <div class="accordion-body text-muted small">
+                                In standard machine learning, datasets are randomly shuffled before splitting. However, in time series forecasting, shuffling causes <em>data leakage</em> (or lookahead bias), where the model inadvertently learns from future records to predict past records. A chronological split (first 80% as train, last 20% as test) strictly mirrors real-world deployment where future data is unseen.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Q3 -->
+                    <div class="accordion-item mb-2 border rounded">
+                        <h2 class="accordion-header" id="headingThree">
+                            <button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree">
+                                Q3: What is the difference between MAE and RMSE?
+                            </button>
+                        </h2>
+                        <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#vivaAccordion">
+                            <div class="accordion-body text-muted small">
+                                <strong>MAE (Mean Absolute Error)</strong> calculates the simple average of absolute errors, treating all error magnitudes linearly. <strong>RMSE (Root Mean Squared Error)</strong> squares the errors before averaging and taking the square root, meaning it penalizes large errors much more heavily. Both are expressed in the original currency units ($).
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Q4 -->
+                    <div class="accordion-item border rounded">
+                        <h2 class="accordion-header" id="headingFour">
+                            <button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour">
+                                Q4: How does the model predict 30 days ahead when lag features for day 15 are not yet available?
+                            </button>
+                        </h2>
+                        <div id="collapseFour" class="accordion-collapse collapse" data-bs-parent="#vivaAccordion">
+                            <div class="accordion-body text-muted small">
+                                The system utilizes an <em>autoregressive recursive multi-step forecasting strategy</em>. When predicting day 1, it uses real historical data. For day 2 and beyond, previously predicted sales values are fed back into the lag feature queue (e.g. day 1's prediction becomes day 2's <code>lag_1</code>). This allows long-horizon forecasts while maintaining consistent feature inputs.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

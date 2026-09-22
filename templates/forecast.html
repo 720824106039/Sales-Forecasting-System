@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+
+{% block title %}Sales Forecasting | Sales Forecasting System{% endblock %}
+
+{% block content %}
+<!-- Hidden form marker -->
+<div id="forecastForm" class="d-none"></div>
+
+<!-- Header -->
+<div class="row mb-4 align-items-center">
+    <div class="col-lg-8">
+        <h2 class="fw-bold mb-1 text-dark">
+            <i class="bi bi-magic text-primary me-2"></i>Predictive Sales Forecasting
+        </h2>
+        <p class="text-muted mb-0">
+            Train a <strong>Linear Regression</strong> machine learning model on historical sales and recursive lag features to forecast future daily revenue.
+        </p>
+    </div>
+    <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+        <!-- Horizon Selector Buttons -->
+        <div class="btn-group shadow-sm" role="group" aria-label="Forecast Period">
+            <button type="button" class="btn btn-forecast-horizon btn-primary active text-white" data-days="7">
+                <i class="bi bi-calendar-week me-1"></i> 7 Days
+            </button>
+            <button type="button" class="btn btn-forecast-horizon btn-outline-primary" data-days="14">
+                <i class="bi bi-calendar2-week me-1"></i> 14 Days
+            </button>
+            <button type="button" class="btn btn-forecast-horizon btn-outline-primary" data-days="30">
+                <i class="bi bi-calendar-month me-1"></i> 30 Days
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Forecast Executive Summary Alert -->
+<div class="alert alert-primary border-primary-subtle shadow-sm py-3 px-4 mb-4">
+    <div class="d-flex align-items-start gap-3">
+        <i class="bi bi-info-circle-fill fs-3 text-primary mt-1"></i>
+        <div>
+            <h6 class="fw-bold mb-1 text-primary">Model Forecast Summary</h6>
+            <p class="mb-0 text-dark">
+                Based on historical sales patterns, the system forecasts the expected sales for the selected future period. 
+                <span class="badge bg-light text-secondary border ms-1">Model-Generated Estimates</span>
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Forecast Summary KPI Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="kpi-card kpi-blue">
+            <div class="kpi-label">Total Forecasted Sales</div>
+            <div class="kpi-value" id="summaryTotalSales">$0.00</div>
+            <small class="text-muted">Expected cumulative revenue</small>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="kpi-card kpi-emerald">
+            <div class="kpi-label">Average Daily Forecast</div>
+            <div class="kpi-value" id="summaryAvgSales">$0.00</div>
+            <small class="text-muted">Mean predicted daily demand</small>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="kpi-card kpi-purple">
+            <div class="kpi-label">Selected Horizon</div>
+            <div class="kpi-value" id="summaryHorizon">7 Days</div>
+            <small class="text-muted">Future prediction window</small>
+        </div>
+    </div>
+</div>
+
+<!-- Model Performance Cards (MAE, RMSE, R2) -->
+<div class="row g-3 mb-4">
+    <div class="col-12">
+        <div class="card card-custom">
+            <div class="card-header-custom py-2">
+                <h5><i class="bi bi-speedometer text-primary"></i> Machine Learning Model Performance Metrics</h5>
+                <span class="badge bg-success-subtle text-success border">Evaluated on Chronological Test Split</span>
+            </div>
+            <div class="card-body">
+                <div class="row g-3 text-center">
+                    <!-- MAE -->
+                    <div class="col-md-4">
+                        <div class="metric-pill h-100">
+                            <span class="metric-title"><i class="bi bi-rulers me-1"></i> MAE (Mean Absolute Error)</span>
+                            <div class="metric-val" id="metricMAE">--</div>
+                            <p class="metric-explanation mb-0">
+                                <strong>MAE</strong> measures the average absolute difference between actual and predicted sales across test transactions.
+                            </p>
+                        </div>
+                    </div>
+                    <!-- RMSE -->
+                    <div class="col-md-4">
+                        <div class="metric-pill h-100">
+                            <span class="metric-title"><i class="bi bi-graph-down me-1"></i> RMSE (Root Mean Squared Error)</span>
+                            <div class="metric-val" id="metricRMSE">--</div>
+                            <p class="metric-explanation mb-0">
+                                <strong>RMSE</strong> measures prediction error and gives higher importance to large errors due to squaring before averaging.
+                            </p>
+                        </div>
+                    </div>
+                    <!-- R2 -->
+                    <div class="col-md-4">
+                        <div class="metric-pill h-100">
+                            <span class="metric-title"><i class="bi bi-percent me-1"></i> R² Score (Coefficient of Determination)</span>
+                            <div class="metric-val" id="metricR2">--</div>
+                            <p class="metric-explanation mb-0">
+                                <strong>R² Score</strong> indicates how well the model's time and lag features explain the variance in historical sales.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Forecast Chart & Table Layout -->
+<div class="row g-4 mb-4 position-relative">
+    <!-- Loading Overlay Spinner -->
+    <div class="spinner-overlay" id="forecastSpinner">
+        <div class="spinner-border text-primary" style="width: 3.5rem; height: 3.5rem;" role="status">
+            <span class="visually-hidden">Training Model & Predicting...</span>
+        </div>
+        <h6 class="fw-bold text-dark mt-3">Computing Lag Features & Forecasting Sales...</h6>
+    </div>
+
+    <!-- Combined Line Chart -->
+    <div class="col-lg-12">
+        <div class="card card-custom">
+            <div class="card-header-custom">
+                <h5>
+                    <i class="bi bi-graph-up-arrow text-primary"></i> 
+                    Historical Sales & Forecast Trajectory
+                </h5>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle">
+                        <i class="bi bi-circle-fill me-1 small"></i> Actual History
+                    </span>
+                    <span class="badge bg-success-subtle text-success border border-success-subtle">
+                        <i class="bi bi-dash-lg me-1"></i> ML Forecast
+                    </span>
+                </div>
+            </div>
+            <div class="card-body">
+                <div style="height: 380px; position: relative;">
+                    <canvas id="forecastCombinedChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Forecast Results Table -->
+    <div class="col-lg-8">
+        <div class="card card-custom h-100">
+            <div class="card-header-custom">
+                <h5><i class="bi bi-table text-primary"></i> Future Daily Predictions</h5>
+                <button type="button" class="btn btn-sm btn-outline-secondary" id="exportForecastBtn">
+                    <i class="bi bi-download me-1"></i> Export Forecast CSV
+                </button>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive" style="max-height: 420px; overflow-y: auto;">
+                    <table class="table table-custom mb-0">
+                        <thead class="sticky-top bg-light">
+                            <tr>
+                                <th>Step</th>
+                                <th>Forecast Date</th>
+                                <th>Day of Week</th>
+                                <th>Predicted Sales</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="forecastTableBody">
+                            <tr>
+                                <td colspan="5" class="text-center py-4 text-muted">
+                                    Loading predictions...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Methodology & Student Viva Card -->
+    <div class="col-lg-4">
+        <div class="card card-custom h-100">
+            <div class="card-header-custom">
+                <h5><i class="bi bi-mortarboard text-info"></i> ML Methodology (Viva Prep)</h5>
+            </div>
+            <div class="card-body">
+                <h6 class="fw-bold text-dark">Why Linear Regression with Lag Features?</h6>
+                <p class="small text-muted mb-3">
+                    Standard linear regression cannot naturally capture temporal ordering. To overcome this, our system engineers <strong>autoregressive lag features</strong>:
+                </p>
+                <ul class="list-unstyled small mb-3">
+                    <li class="mb-2">
+                        <i class="bi bi-check-circle-fill text-success me-2"></i>
+                        <strong>Lag 1:</strong> Previous day's sales to capture immediate momentum.
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-check-circle-fill text-success me-2"></i>
+                        <strong>Lag 7:</strong> Same weekday of the previous week (weekly seasonality).
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-check-circle-fill text-success me-2"></i>
+                        <strong>7-Day Moving Avg:</strong> Smooths high-frequency noise to establish underlying trend.
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-check-circle-fill text-success me-2"></i>
+                        <strong>Calendar Features:</strong> Day of week, month, weekend indicator.
+                    </li>
+                </ul>
+
+                <div class="p-2 bg-light rounded border small text-muted">
+                    <i class="bi bi-shield-check text-primary me-1"></i>
+                    <strong>No Data Leakage:</strong> Training and evaluation uses chronological splitting rather than random shuffling.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
